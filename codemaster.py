@@ -1,42 +1,36 @@
 import socket  
-import numpy as np              
+import numpy as np    
+import json          
 
 board = []
+words = []
 
-def generateGame():
-   words = []
+with open('words.txt', 'r') as wordFile:
+   for line in wordFile:
+      words.append(line[:-1])
 
-   with open('words.txt', 'r') as wordFile:
-      for line in wordFile:
-         words.append(line[:-1])
-   
-   board = np.random.choice(words, 25)
+words = np.ndarray.tolist(np.random.choice(words, 25))
+teams = [1]*9 + [-1]*8 + [0]*7 + [2]
+np.random.shuffle(teams)
+board = dict(zip(words, teams))
 
-   teams = np.array([1]*9 + [-1]*8 + [0]*7 + [2])
-   teams = {}
-   for word in board:
-      teams[word] = np.random.choice(teams, 1)
-   
-   
-   print(board)
-   print(teams)
+print(board)
 
-s = socket.socket()          
-port = 12345                
-s.bind(('', port))         
-print('socket binded to ' + str(port))
-s.listen(5)      
-  
+HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
+PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
-generateGame()
-
-while(True): 
-  
-   c, addr = s.accept()      
-   print('Got connection from', addr)
-
-   c.send('Thank you for connecting') 
-  
-   c.close() 
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
+    conn, addr = s.accept()
+    with conn:
+        print('Connected by', addr)
+        boardSend = bytes(json.dumps(board), 'UTF-8')
+        conn.sendall(boardSend)
+        while True:
+            data = conn.recv(1024)
+            if not data:
+                break
+            conn.sendall(data)
 
 
