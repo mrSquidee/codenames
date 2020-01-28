@@ -25,7 +25,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     conn, addr = s.accept()
     with conn:
         print('Connected by', addr)
-        boardSend = bytes(json.dumps(board), 'UTF-8')
+        boardSend = bytes(str(words), 'UTF-8')
         conn.sendall(boardSend)
         while True:
             data = conn.recv(1024)
